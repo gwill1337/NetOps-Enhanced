@@ -1,0 +1,73 @@
+<config version="10.2.0">
+  <mgt-config>
+    <hostname>{{ hostname }}</hostname>
+  </mgt-config>
+
+  <devices>
+    <entry name="localhost.localdomain">
+      <network>
+        <interface>
+{% for iface in interfaces %}
+          <entry name="{{ iface.name }}">
+            <layer3>
+              <ipv4>
+                <address>
+                  <entry name="{{ iface.ip }}/{{ iface.prefix }}">
+                    <comment>{{ iface.comment | default("") }}</comment>
+                  </entry>
+                </address>
+              </ipv4>
+              {% if iface.shutdown %}
+              <interface-management-profile>disabled</interface-management-profile>
+              {% endif %}
+            </layer3>
+          </entry>
+{% endfor %}
+        </interface>
+      </network>
+
+{% if bgp %}
+      <protocol>
+        <bgp>
+          <routing-options>
+            <asn>{{ bgp.asn }}</asn>
+          </routing-options>
+          <peer-group>
+            <entry name="EBGP">
+              {% for n in bgp.neighbors %}
+              <peer>
+                <entry name="{{ n.ip }}">
+                  <peer-as>{{ n.remote_as }}</peer-as>
+                </entry>
+              </peer>
+              {% endfor %}
+            </entry>
+          </peer-group>
+        </bgp>
+      </protocol>
+{% endif %}
+
+{% if acls %}
+      <vsys>
+        <entry name="vsys1">
+          <rules>
+            <security>
+{% for rule in acls %}
+              <entry name="{{ rule.name }}">
+                <from><zone>any</zone></from>
+                <to><zone>any</zone></to>
+                <source><member>{{ rule.src }}</member></source>
+                <destination><member>{{ rule.dst }}</member></destination>
+                <application><member>any</member></application>
+                <action>{{ rule.action }}</action>
+              </entry>
+{% endfor %}
+            </security>
+          </rules>
+        </entry>
+      </vsys>
+{% endif %}
+
+    </entry>
+  </devices>
+</config>
