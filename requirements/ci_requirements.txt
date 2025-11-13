@@ -1,0 +1,5 @@
+pybatfish==2025.7.7.2423
+ansible
+pytest
+jinja2
+pyyaml
