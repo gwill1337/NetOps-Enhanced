@@ -1,0 +1,106 @@
+name: CI_Validation
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'snapshots/ci_net/**/*'
+
+jobs:
+  batfish-ci:
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+        persist-credentials: false
+
+    - name: Start Batfish (Docker)
+      run: |
+        sudo docker run -d --name batfish -p 8888:8888 -p 9996:9996 batfish/allinone
+        # wait until Batfish API responds
+        for i in {1..60}; do
+          if curl -sSf http://localhost:9996/v2/version >/dev/null 2>&1; then
+            echo "Batfish ready"; break
+          fi
+          sleep 1
+        done
+
+    - name: Setup Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.11'
+
+    - name: Install Python deps
+      run: |
+        python -m pip install --upgrade pip
+        python -m pip install -r requirements/ci_requirements.txt
+
+    - name: Prepare Batfish snapshot directories
+      run: |
+        sudo mkdir -p snapshots/ci_net/configs/manual
+        sudo mkdir -p snapshots/ci_net/configs/generated
+        sudo mkdir -p backup
+
+    - name: Generate configs from yaml if have
+      run: python tools/conf-generator.py
+
+    - name: Copy configs to snapshot (Ansible)
+      run: ansible-playbook ansible/playbook.yml -i ansible/hosts
+
+    - name: Run Pytest script
+      run: python tests/test_batfish.py
+
+    - name: Run tests
+      run: pytest -v --maxfail=1 --disable-warnings --tb=short
+
+    - name: Notify Telegram (Success)
+      if: success()
+      uses: appleboy/telegram-action@v1.0.1
+      with:
+        to: ${{ secrets.TG_CHAT_ID }}
+        token: ${{ secrets.TG_BOT_TOKEN }}
+        message: "tests finished successfully!"
+
+    - name: Notify Telegram (Failure)
+      if: failure()
+      uses: appleboy/telegram-action@v1.0.1
+      with:
+        to: ${{ secrets.TG_CHAT_ID }}
+        token: ${{ secrets.TG_BOT_TOKEN }}
+        message: "tests failed!"
+
+    - name: Backup generated configs
+      if: success()
+      run: |
+        shopt -s nullglob
+        
+        echo "Attempting to back up configs..."
+        
+        if [ -d "snapshots/ci_net/configs/generated" ]; then
+          cp snapshots/ci_net/configs/generated/*.cfg backup/ || true
+          echo "Generated configs backed up."
+        else
+          echo "Skipping generated configs: Directory snapshots/ci_net/configs/generated not found."
+        fi
+
+        if [ -d "snapshots/ci_net/configs/manual" ]; then
+          cp snapshots/ci_net/configs/manual/*.cfg backup/ || true
+          echo "Manual configs backed up."
+        else
+          echo "Skipping manual configs: Directory snapshots/ci_net/configs/manual not found."
+        fi
+        
+        echo "Configs backup process finished."
+        
+    - name: Commit and push backups
+      if: success()
+      env:
+        GH_PAT: ${{ secrets.GH_PAT }}
+      run: |
+       git config user.name "github-actions[bot]"
+       git config user.email "github-actions[bot]@users.noreply.github.com"
+       git add backup/
+       git diff --staged --quiet || git commit -m "Backup configs after successful validation"
+       git remote set-url origin https://x-access-token:${GH_PAT}@github.com/${{ github.repository }}
+       git push origin HEAD:main
