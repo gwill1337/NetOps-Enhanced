@@ -1,0 +1,62 @@
+system {
+    host-name {{ hostname }};
+}
+
+interfaces {
+{% for iface in interfaces %}
+    {{ iface.name }} {
+        unit 0 {
+            family inet {
+                address {{ iface.ip }}/{{ iface.prefix }};
+            }
+        }
+        {% if iface.shutdown %}
+        disable;
+        {% endif %}
+    }
+{% endfor %}
+}
+
+{% if ospf %}
+protocols {
+    ospf {
+        {% for net in ospf.networks %}
+        area {{ net.area }} {
+            interface {{ net.interface }};
+        }
+        {% endfor %}
+    }
+{% endif %}
+
+{% if bgp %}
+protocols {
+    bgp {
+        group EBGP {
+            type external;
+            local-as {{ bgp.asn }};
+            {% for n in bgp.neighbors %}
+            neighbor {{ n.ip }} {
+                peer-as {{ n.remote_as }};
+            }
+            {% endfor %}
+        }
+    }
+}
+{% endif %}
+
+{% if acls %}
+policy-options {
+{% for acl in acls %}
+    policy-statement {{ acl.name }} {
+        term term1 {
+            from {
+                protocol {{ acl.protocol }};
+                source-address {{ acl.src }};
+                destination-address {{ acl.dst }};
+            }
+            then {{ acl.action }};
+        }
+    }
+{% endfor %}
+}
+{% endif %}
