@@ -1,0 +1,31 @@
+hostname {{ hostname }}
+
+{% for iface in interfaces %}
+interface {{ iface.name }}
+ ip address {{ iface.ip }} {{ iface.mask }}
+ {% if iface.shutdown %}
+ shutdown
+ {% else %}
+ no shutdown
+ {% endif %}
+{% endfor %}
+
+{% if ospf %}
+router ospf {{ ospf.process }}
+ {% for net in ospf.networks %}
+ network {{ net.ip }} {{ net.wildcard }} area {{ net.area }}
+ {% endfor %}
+{% endif %}
+
+{% if bgp %}
+router bgp {{ bgp.asn }}
+ {% for n in bgp.neighbors %}
+ neighbor {{ n.ip }} remote-as {{ n.remote_as }}
+ {% endfor %}
+{% endif %}
+
+{% if acls %}
+{% for acl in acls %}
+access-list {{ acl.number }} {{ acl.action }} {{ acl.protocol }} {{ acl.src }} {{ acl.dst }}
+{% endfor %}
+{% endif %}
