@@ -1,0 +1,7 @@
+---
+Your_name:         #Your name like Core1, Switch1 or SW1, RTR1
+  hostname:        #IP
+  username:        #Username
+  platform:        #Like cisco or smth else
+  data:
+    ssh_key_file: /home/runner/.ssh/deploy_key
