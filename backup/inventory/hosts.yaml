@@ -1,0 +1,7 @@
+---
+ubuntu_vm:
+  hostname:
+  username:
+  platform:
+  data:
+    ssh_key_file: /home/runner/.ssh/deploy_key
