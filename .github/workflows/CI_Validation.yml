@@ -60,7 +60,7 @@ jobs:
       with:
         to: ${{ secrets.TG_CHAT_ID }}
         token: ${{ secrets.TG_BOT_TOKEN }}
-        message: "tests finished successfully!"
+        message: "CI completed successfully!"
 
     - name: Notify Telegram (Failure)
       if: failure()
@@ -68,7 +68,7 @@ jobs:
       with:
         to: ${{ secrets.TG_CHAT_ID }}
         token: ${{ secrets.TG_BOT_TOKEN }}
-        message: "tests failed!"
+        message: "CI failed!"
 
     - name: Backup generated configs
       if: success()
