@@ -1,62 +1,25 @@
-system {
-    host-name {{ hostname }};
-}
-
-interfaces {
-{% for iface in interfaces %}
-    {{ iface.name }} {
-        unit 0 {
-            family inet {
-                address {{ iface.ip }}/{{ iface.prefix }};
-            }
-        }
-        {% if iface.shutdown %}
-        disable;
-        {% endif %}
-    }
+{% for intf in interfaces %}
+set interfaces {{ intf.name }} unit 0 family inet address {{ intf.ip }}/{{ intf.prefixlen }}
+{% if not intf.active %}
+set interfaces {{ intf.name }} disable
+{% endif %}
 {% endfor %}
-}
 
-{% if ospf %}
-protocols {
-    ospf {
-        {% for net in ospf.networks %}
-        area {{ net.area }} {
-            interface {{ net.interface }};
-        }
-        {% endfor %}
-    }
+{% if hostname %}
+set system host-name {{ hostname }}
 {% endif %}
 
 {% if bgp %}
-protocols {
-    bgp {
-        group EBGP {
-            type external;
-            local-as {{ bgp.asn }};
-            {% for n in bgp.neighbors %}
-            neighbor {{ n.ip }} {
-                peer-as {{ n.remote_as }};
-            }
-            {% endfor %}
-        }
-    }
-}
+set routing-options router-id {{ bgp.router_id }}
+set protocols bgp group {{ bgp.group_name }} type {{ bgp.type | default("external") }}
+set protocols bgp group {{ bgp.group_name }} local-as {{ bgp.local_as }}
+{% for nbr in bgp.neighbors %}
+set protocols bgp group {{ bgp.group_name }} neighbor {{ nbr.ip }} peer-as {{ nbr.remote_as }}
+{% endfor %}
 {% endif %}
 
-{% if acls %}
-policy-options {
-{% for acl in acls %}
-    policy-statement {{ acl.name }} {
-        term term1 {
-            from {
-                protocol {{ acl.protocol }};
-                source-address {{ acl.src }};
-                destination-address {{ acl.dst }};
-            }
-            then {{ acl.action }};
-        }
-    }
+{% if static_routes %}
+{% for r in static_routes %}
+set routing-options static route {{ r.network }} next-hop {{ r.next_hop }}
 {% endfor %}
-}
 {% endif %}
