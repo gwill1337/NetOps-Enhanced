@@ -4,7 +4,7 @@
 ![License](https://img.shields.io/github/license/gwill1337/NetOps-Enhanced)
 
 ## About
-**NetOps-Enhanced** this enhanced version of **NetOps** project. This project provides an automated network validation CI/CD pipeline powered by Batfish, Ansible, and GitHub Actions. It supports customizable configuration tests, ensuring that all network configs are validated, verified, and safely backed up. The project also supports generating device configurations using Jinja2 templates.  
+**NetOps-Enhanced** this enhanced version of **NetOps** project. This project provides an automated network validation CI/CD pipeline powered by **Batfish**, **Ansible**, and **GitHub Actions**. It supports customizable configuration tests, ensuring that all network configs are validated, verified, and safely backed up. The project also supports generating device configurations using Jinja2 templates. Code quality is maintained using **Ruff**, ensuring consistency, readability, and adherence to Python best practices.    
 
 
 
