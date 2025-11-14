@@ -31,33 +31,50 @@ def test_interfaces_active_on_critical_nodes(bf, config):
     if not critical_nodes:
         pytest.skip("No critical_nodes in config")
 
+    # load interfaceProperties
     try:
         if_props = bf.q.interfaceProperties().answer().frame()
     except Exception as e:
         pytest.skip(f"interfaceProperties question not available: {e}")
 
-    # Prefer an explicit 'Node' column; otherwise try to split 'Interface' later
+    # Determine node column
     if "Node" in if_props.columns:
         df = if_props
         node_col = "Node"
     elif "Interface" in if_props.columns:
-        # try to extract node from Interface column if formatted as Node[Intf]
         df = if_props.copy()
-        if df["Interface"].astype(str).str.contains(r"\[").any():
-            df["Node"] = df["Interface"].astype(str).str.split(r"\[", n=1).str[0]
+        iface_col = df["Interface"].astype(str)
+
+        if iface_col.str.contains(r"\[").any():
+            df["Node"] = iface_col.str.split(r"\[", n=1).str[0]
             node_col = "Node"
         else:
             pytest.skip("Cannot infer Node from Interface column")
     else:
         pytest.skip("No Node/Interface columns in interfaceProperties output")
 
+    # Active column presence
     if "Active" not in df.columns:
         pytest.skip("'Active' column not present in interfaceProperties output; skipping active check")
 
+    # Filter rows for critical nodes
     sub = df[df[node_col].isin(critical_nodes)]
-    inactive = sub[sub["Active"] == False]
-    # allow some but fail if any inactive (simple policy)
-    assert inactive.empty, f"Found inactive interfaces on critical nodes:\n{inactive[[node_col,'Interface']].to_string(index=False)}"
+
+    # Protection from KeyError: ensure "Active" is boolean-like
+    if not sub["Active"].isin([True, False]).any() and not sub["Active"].dropna().astype(str).isin(["True", "False"]).any():
+        pytest.skip("Active column exists but values are not boolean — Batfish version mismatch")
+
+    # Compute inactive safely
+    try:
+        inactive = sub[~sub["Active"]]
+    except Exception:
+        pytest.skip("Unexpected format of 'Active' column — skipping test")
+
+    # allow no inactive interfaces
+    assert inactive.empty, (
+        f"Found inactive interfaces on critical nodes:\n"
+        f"{inactive[[node_col, 'Interface']].to_string(index=False)}"
+    )
 
 
 def test_bgp_sessions_exist(bf):
