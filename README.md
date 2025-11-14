@@ -4,7 +4,7 @@
 ![License](https://img.shields.io/github/license/gwill1337/NetOps-Enhanced)
 
 ## About
-**NetOps-Enhanced** this enhanced version of **NetOps** project. This project provides an automated network validation CI/CD pipeline powered by **Batfish**, **Ansible**, and **GitHub Actions**. It supports customizable configuration tests, ensuring that all network configs are validated, verified, and safely backed up. The project also supports generating device configurations using Jinja2 templates. Code quality is maintained using **Ruff**, ensuring consistency, readability, and adherence to Python best practices.    
+**NetOps-Enhanced** this enhanced version of **NetOps** project. This project provides an automated network validation CI/CD pipeline powered by Batfish, Ansible, and GitHub Actions. It supports customizable configuration tests, ensuring that all network configs are validated, verified, and safely backed up. The project also supports generating device configurations using Jinja2 templates.  
 
 
 
@@ -108,3 +108,23 @@ NetOps-Enhanced/
 ├── README.md   
 └── LICENSE   
  ```
+
+## Repository Secrets Guide
+1. **GitHub Personal Access Token (GH_PAT)**
+   * Go to **GitHub** -> **Settings** -> **Developer settings** -> **Personal access tokens** -> **Tokens (classic)** -> **Generate new token**.
+   * Select scopes: **repo** (for repository access) and **workflow** (for GitHub Actions).
+   * Copy the token.
+   * Go to your repository -> **Settings** -> **Secrets** -> **Actions** -> **New repository secret**.
+   * Name it **GH_PAT** and paste the token. 
+  
+2. **Telegram Bot Token (TG_BOT_TOKEN)**
+   * Open Telegram and search for **BotFather**.
+   * Create new bot.
+   * Copy the **API token** given by BotFather.
+   * Go to your repository -> **Settings** -> **Secrets** -> **New repository secret**.
+   * Name it **TG_BOT_TOKEN** and paste the token.
+3. **Telegram Chat ID (TG_CHAT_ID)**
+   * Open Telegram and search for **@userinfobot**.
+   * Start the bot and send **/start**.
+   * The bot will reply with your chat ID.
+   * Go to repository secrets -> **New secret** -> Name it **TG_CHAT_ID** and paste the ID.
