@@ -1,31 +1,37 @@
 hostname {{ hostname }}
-
-{% for iface in interfaces %}
-interface {{ iface.name }}
- ip address {{ iface.ip }} {{ iface.mask }}
- {% if iface.shutdown %}
- shutdown
- {% else %}
- no shutdown
- {% endif %}
+!
+{% for intf in interfaces %}
+interface {{ intf.name }}
+ description {{ intf.description | default("managed-by-ci") }}
+ {% if intf.ip %}ip address {{ intf.ip }} {{ intf.mask }}{% endif %}
+ {% if not intf.active %}shutdown{% endif %}
+!
 {% endfor %}
 
-{% if ospf %}
-router ospf {{ ospf.process }}
- {% for net in ospf.networks %}
- network {{ net.ip }} {{ net.wildcard }} area {{ net.area }}
- {% endfor %}
-{% endif %}
-
 {% if bgp %}
-router bgp {{ bgp.asn }}
- {% for n in bgp.neighbors %}
- neighbor {{ n.ip }} remote-as {{ n.remote_as }}
- {% endfor %}
+router bgp {{ bgp.local_as }}
+ bgp router-id {{ bgp.router_id }}
+{% for nbr in bgp.neighbors %}
+ neighbor {{ nbr.ip }} remote-as {{ nbr.remote_as }}
+{% if nbr.description %} neighbor {{ nbr.ip }} description {{ nbr.description }}{% endif %}
+{% endfor %}
 {% endif %}
 
 {% if acls %}
 {% for acl in acls %}
-access-list {{ acl.number }} {{ acl.action }} {{ acl.protocol }} {{ acl.src }} {{ acl.dst }}
+ip access-list extended {{ acl.name }}
+{% for line in acl.lines %}
+ {{ line.action }} {{ line.proto }} {{ line.src }} {{ line.src_port | default("") }} {{ line.dst }} {{ line.dst_port | default("") }}
+{% endfor %}
+!
 {% endfor %}
 {% endif %}
+
+{% if default_gateway %}
+ip route 0.0.0.0 0.0.0.0 {{ default_gateway }}
+{% endif %}
+
+line vty 0 4
+ login local
+!
+end
