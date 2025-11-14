@@ -1,7 +1,7 @@
 from nornir import InitNornir
 from nornir_netmiko.tasks import netmiko_send_command
 from nornir.core.task import Task, Result
-from nornir.plugins.inventory import simple
+# from nornir.plugins.inventory import simple
 
 def connect_device(task: Task) -> Result:
 
