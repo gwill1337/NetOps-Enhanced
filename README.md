@@ -18,7 +18,7 @@
    * For auto version with jinja2 -> paste configs into folder **./snapshots/ci_net/device-yaml/**    [config guide](https://github.com/gwill1337/NetOps-Enhanced/blob/main/snapshots%20%20/ci_net/device-yaml/Device_yaml_guide.md)   
 
 ## Customize
-You can customize -> jinja2 templates, tests, configs and etc. for nornir. Project map are below. 
+You can customize -> jinja2 templates, tests, configs and etc. for nornir. Project map below. 
 
 ## Security
 For security in the CI workflow, use Ruff lint to validate all Python scripts, including tests.
