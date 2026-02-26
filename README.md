@@ -10,7 +10,7 @@
 
 
 ## Set Up
-1. Create repository secrets named **TG_CHAT_ID**, **TG_BOT_TOKEN** - for notifications in Telegram. And **GH_PAT** for backups into repository. *Guide how create tokens are below*.
+1. Create repository secrets named **TG_CHAT_ID**, **TG_BOT_TOKEN** - for notifications in Telegram. And **GH_PAT** for backups into repository. *A guide on how to create tokens is provided below*.
 2. Create config for tests. In folder **./tests/config/** create **config.yaml** via **[config_guide.md](https://github.com/gwill1337/NetOps-Enhanced/blob/main/tests/config/config_guide.md)**.
 3. Create config for Nornir. In folder **./inventory** configure nornir at least **hosts.yaml**.
 4. Configure your configs for validation. 
